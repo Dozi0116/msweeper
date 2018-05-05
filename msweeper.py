@@ -18,7 +18,6 @@ class Board:
             self.invisible_square_num -= 1
 
         check_table = [[-1,-1], [-1, 0], [-1, 1], [0, -1], [0, 0], [0, 1], [1, -1], [1, 0], [1, 1]]
-
         for i in check_table:
             if self.square[y + i[0]][x + i[1]].state == 1: #bomb
                 self.square[y][x].around_bomb += 1
@@ -34,7 +33,7 @@ class Board:
         for i in range(1, self.width+1):
             print(str(i).rjust(2) + ' ', end = '')
             for j in range(1, self.height+1):
-                if self.square[i][j].visible_state == 0: #invisible
+                if self.square[i][j].visible_state in {0, -1}: #invisible
                     print('.', end = '')
                 elif self.square[i][j].visible_state == 1: #visible
                     if self.square[i][j].state == 1:
@@ -67,10 +66,11 @@ class Board:
         for i in range(self.height * self.width):
             a = [random.randint(1, self.height), random.randint(1, self.width)]
             b = [random.randint(1, self.height), random.randint(1, self.width)]
-            if a == [y, x] or b == [y, x]:
-                continue
             self.square[a[0]][a[1]], self.square[b[0]][b[1]] = self.square[b[0]][b[1]], self.square[a[0]][a[1]]
-    
+        
+        while self.square[y][x].state == 1:
+            b = [random.randint(1, self.height), random.randint(1, self.width)]
+            self.square[y][x], self.square[b[0]][b[1]] = self.square[b[0]][b[1]], self.square[y][x]
 
 class Square:
     def __init__(self):
@@ -128,7 +128,7 @@ def read_command(command, board):
     
     while True:
         temp_x = input('Please enter the open square x-axis(a-' + string.ascii_lowercase[board.width-1] + ')').lower() #大文字対策
-        temp_y = input('Please entre the open square y-axis(1-' + str(board.height) + ')')
+        temp_y = input('Please enter the open square y-axis(1-' + str(board.height) + ')')
         
         if ord(temp_x[0]) - ord('a') + 1 in range(1, board.width+1) and int(temp_y) in range(1, board.height+1):
             command['x'] = ord(temp_x[0]) - ord('a') + 1
@@ -143,22 +143,20 @@ def main_game(height, width, bomb):
     board.show()
     read_command(command, board)
     board.setting(command['x'], command['y'])
-    board.open(command['x'], command['y'])
 
     while True:
-
-
         board.open(command['x'], command['y'])
         board.show()
-        read_command(command, board)
+
         if board.square[command['y']][command['x']].state == 1:
             return False
         elif board.invisible_square_num <= board.bomb:
             return True
+        
+        read_command(command, board)
 
 
-
-def postprocess_game():
+def postprocess_game(is_clear):
     if is_clear:
         print('GAME CLEAR!!')
     else:

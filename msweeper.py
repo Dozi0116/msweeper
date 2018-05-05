@@ -146,13 +146,19 @@ def main_game(height, width, bomb):
 
     while True:
         board.open(command['x'], command['y'])
-        board.show()
 
         if board.square[command['y']][command['x']].state == 1:
             return False
         elif board.invisible_square_num <= board.bomb:
+            for i in range(1, height+1):
+                for j in range(1, width+1):
+                    if board.square[i][j].state == 1:
+                        board.square[i][j].visible_state = 2
+            board.show()
             return True
         
+        board.show()
+
         read_command(command, board)
 
 

@@ -1,10 +1,12 @@
 import string
+import random
 
 class Board:
     def __init__(self, height, width, bomb):
         self.height = height
         self.width = width
         self.bomb = bomb
+        self.invisible_square_num = height * width
 
         self.square = [[Square() for i in range(width+2)]for i in range(height+2)]
 
@@ -13,8 +15,9 @@ class Board:
             return
         else:
             self.square[y][x].visible_state = 1
+            self.invisible_square_num -= 1
 
-        check_table = [[-1,-1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+        check_table = [[-1,-1], [-1, 0], [-1, 1], [0, -1], [0, 0], [0, 1], [1, -1], [1, 0], [1, 1]]
 
         for i in check_table:
             if self.square[y + i[0]][x + i[1]].state == 1: #bomb
@@ -47,6 +50,28 @@ class Board:
 
             print('')
 
+    def setting(self, x, y):
+        #put bomb
+        bomb_count = self.bomb
+        for i in range(1, self.height+1):
+            for j in range(1, self.width+1):
+                if bomb_count > 0:
+                    self.square[i][j].state = 1
+                    self.square[i][j].visible_state = 0
+                    bomb_count -= 1
+                else:
+                    self.square[i][j].state = 0
+                    self.square[i][j].visible_state = 0
+            
+        #swap
+        for i in range(self.height * self.width):
+            a = [random.randint(1, self.height), random.randint(1, self.width)]
+            b = [random.randint(1, self.height), random.randint(1, self.width)]
+            if a == [y, x] or b == [y, x]:
+                continue
+            self.square[a[0]][a[1]], self.square[b[0]][b[1]] = self.square[b[0]][b[1]], self.square[a[0]][a[1]]
+    
+
 class Square:
     def __init__(self):
         self.visible_state = -1
@@ -54,23 +79,6 @@ class Square:
         self.around_bomb = 0
         
 
-
-def setting_board(board):
-    print('in setting_board')
-    #put bomb
-    bomb_count = board.bomb
-    for i in range(1, board.height+1):
-        for j in range(1, board.width+1):
-            if bomb_count > 0:
-                board.square[i][j].state = 1
-                board.square[i][j].visible_state = 0
-                bomb_count -= 1
-            else:
-                board.square[i][j].state = 0
-                board.square[i][j].visible_state = 0
-            
-    board.show()
-    print('out setting_board')
 
 
 def init_game():
@@ -116,33 +124,45 @@ def preprocess_game(board_info):
     board_info['bomb'] = bomb
 
 
+def read_command(command, board):
+    
+    while True:
+        temp_x = input('Please enter the open square x-axis(a-' + string.ascii_lowercase[board.width-1] + ')').lower() #大文字対策
+        temp_y = input('Please entre the open square y-axis(1-' + str(board.height) + ')')
+        
+        if ord(temp_x[0]) - ord('a') + 1 in range(1, board.width+1) and int(temp_y) in range(1, board.height+1):
+            command['x'] = ord(temp_x[0]) - ord('a') + 1
+            command['y'] = int(temp_y)
+            break
+
+
 def main_game(height, width, bomb):
-    print('in main_game')
     board = Board(height, width, bomb)
+
+    command = {}
     board.show()
-    setting_board(board)
+    read_command(command, board)
+    board.setting(command['x'], command['y'])
+    board.open(command['x'], command['y'])
 
     while True:
-        while True:
-            temp_x = input('Please enter the open square x-axis(a-' + string.ascii_lowercase[width-1] + ')').lower() #大文字対策
-            temp_y = input('Please entre the open square y-axis(1-' + str(height) + ')')
-            
-            if ord(temp_x[0]) - ord('a') + 1 in range(1, width+1) and int(temp_y) in range(1, height+1):
-                command_x = ord(temp_x[0]) - ord('a') + 1
-                command_y = int(temp_y)
-                break
 
-        board.open(command_x, command_y)
+
+        board.open(command['x'], command['y'])
         board.show()
-        if board.square[command_y][command_x].state == 1:
-            break
-            
+        read_command(command, board)
+        if board.square[command['y']][command['x']].state == 1:
+            return False
+        elif board.invisible_square_num <= board.bomb:
+            return True
 
-    print('out main_game')
 
 
-def postprocess_game(board_info):
-    print('in postprocess_game')
+def postprocess_game():
+    if is_clear:
+        print('GAME CLEAR!!')
+    else:
+        print('GAME OVER')
 
     while True:
         print('continue? y/n')
@@ -150,7 +170,6 @@ def postprocess_game(board_info):
         if command in {'y', 'n'}:
             break
 
-    print('out postprocess_game')
     return command
 
 
@@ -161,8 +180,8 @@ if __name__ == '__main__':
 
     while True:
         preprocess_game(board_info)
-        main_game(board_info['height'], board_info['width'], board_info['bomb'])
-        cont = postprocess_game(board_info)
+        is_clear = main_game(board_info['height'], board_info['width'], board_info['bomb'])
+        cont = postprocess_game(is_clear)
 
         if cont == 'n':
             break

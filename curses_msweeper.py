@@ -1,6 +1,7 @@
 import string
 import random
 import time
+import curses
 
 class Board:
     def __init__(self, height, width, bomb):

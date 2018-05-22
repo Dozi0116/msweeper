@@ -203,6 +203,10 @@ def postprocess_game(clear_time):
 if __name__ == '__main__':
     init_game()
     
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+
     board_info = {}
 
     while True:

@@ -88,7 +88,6 @@ def init_game():
 
 
 def preprocess_game(board_info):
-    
     while True:
         print('Please serect board size(number of bomb)')
         print('1: 9* 9(10)\n2:16*16(40)\n3:25*25(90)\n4: other')
@@ -100,20 +99,19 @@ def preprocess_game(board_info):
         else:
             if command in range(1, 5): # 1 <= command && command < 5
                 break
-
             print('error. command range is 1 - 4')
 
     #set board info
-    if command == 1:
+    if command == 1: #easy
         height = width = 9
         bomb = 10
-    elif command == 2:
+    elif command == 2: #normal
         height = width = 16
         bomb = 40
-    elif command == 3:
+    elif command == 3: #hard
         height = width = 25
         bomb = 90
-    elif command == 4:
+    elif command == 4: #custom
         while True:
             height = int(input('Please enter the height size(5-26)'))
             if height in range(5, 27):
@@ -141,15 +139,9 @@ def read_command(command, board):
             command['y'] = int(temp_y)
         except ValueError:
             print('error. format:a,1')
-
-        #if ord(temp_x[0]) - ord('a') + 1 in range(1, board.width+1) and int(temp_y) in range(1, board.height+1):
-            #command['x'] = ord(temp_x[0]) - ord('a') + 1
-            #command['y'] = int(temp_y)
-            #break
         else:
             if command['x'] in range(1, board.width+1) and command['y'] in range(1, board.height+1):
                 break
-
             print('error. x-range is a-' + string.ascii_lowercase[board.width-1] + ', y-range is 1-' + str(board.height))
 
 
